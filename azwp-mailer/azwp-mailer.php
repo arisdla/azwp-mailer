@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AZ's WP SMTP Mailer
  * Description: A plugin to configure SMTP settings for sending emails in WordPress.
- * Version: 0.1.1
+ * Version: 0.1.2
  * Author: Aris Z.
  */
 
@@ -184,6 +184,19 @@ function azwp_mailer_options_page() {
     <?php
 }
 
+// Force 'From' Name and Email for all outgoing emails (including core emails)
+function azwp_mailer_force_from_email($original_email) {
+    $options = get_option('azwp_mailer_settings');
+    return $options['azwp_mailer_from_email'];
+}
+add_filter('wp_mail_from', 'azwp_mailer_force_from_email');
+
+function azwp_mailer_force_from_name($original_name) {
+    $options = get_option('azwp_mailer_settings');
+    return $options['azwp_mailer_from_name'];
+}
+add_filter('wp_mail_from_name', 'azwp_mailer_force_from_name');
+
 // Set up the mailer using the configured SMTP settings.
 function azwp_mailer_configure_mailer($phpmailer) {
     $options = get_option('azwp_mailer_settings');
@@ -196,12 +209,8 @@ function azwp_mailer_configure_mailer($phpmailer) {
     $phpmailer->Password = $options['azwp_mailer_smtp_password'];
     $phpmailer->SMTPSecure = ($options['azwp_mailer_encryption_method'] !== 'none') ? $options['azwp_mailer_encryption_method'] : '';
 
-    // Ensure 'From' email and name are properly set
-    if (!empty($options['azwp_mailer_from_email']) && !empty($options['azwp_mailer_from_name'])) {
-        $phpmailer->setFrom($options['azwp_mailer_from_email'], $options['azwp_mailer_from_name']);
-    } elseif (!empty($options['azwp_mailer_from_email'])) {
-        $phpmailer->setFrom($options['azwp_mailer_from_email']);
-    }
+    // Always force 'From' email and name to be set.
+    $phpmailer->setFrom($options['azwp_mailer_from_email'], $options['azwp_mailer_from_name']);
 
     // Enable SMTP debugging for testing
     $phpmailer->SMTPDebug = 0; // 0 = Off, 1 = Commands, 2 = Data
