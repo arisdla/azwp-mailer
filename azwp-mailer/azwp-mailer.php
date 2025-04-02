@@ -173,15 +173,33 @@ function azwp_mailer_settings_section_callback() {
 
 function azwp_mailer_options_page() {
     ?>
-    <form action='options.php' method='post'>
+    <div class="wrap">
         <h2>AZ's WP SMTP Mailer</h2>
-        <?php
-        settings_fields('pluginPage');
-        do_settings_sections('pluginPage');
-        submit_button();
-        ?>
-    </form>
+        <h2 class="nav-tab-wrapper">
+            <a href="?page=azwp_mailer&tab=smtp_config" class="nav-tab <?php echo azwp_mailer_get_active_tab('smtp_config'); ?>">SMTP Config</a>
+            <a href="?page=azwp_mailer&tab=other_settings" class="nav-tab <?php echo azwp_mailer_get_active_tab('other_settings'); ?>">Other Settings</a>
+        </h2>
+        <form action='options.php' method='post'>
+            <?php
+            $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'smtp_config';
+
+            if ($active_tab === 'smtp_config') {
+                settings_fields('pluginPage');
+                do_settings_sections('pluginPage');
+            } else {
+                echo '<p>' . __('Other settings can be configured here.', 'azwp_mailer') . '</p>';
+            }
+
+            submit_button();
+            ?>
+        </form>
+    </div>
     <?php
+}
+
+function azwp_mailer_get_active_tab($tab_name) {
+    $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'smtp_config';
+    return $active_tab === $tab_name ? 'nav-tab-active' : '';
 }
 
 // Force 'From' Name and Email for all outgoing emails (including core emails)
