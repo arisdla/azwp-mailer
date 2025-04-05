@@ -1,0 +1,75 @@
+name: Release Plugin
+
+on:
+  pull_request:
+    branches:
+      - release
+    types:
+      - closed
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up variables
+        id: vars
+        run: |
+          PLUGIN_FILE="azwp-mailer/azwp-mailer.php"
+          VERSION=$(grep -oP 'Version:\s*\K[\d.]+' $PLUGIN_FILE)
+          NAME=$(grep -oP 'Plugin Name:\s*\K.+' $PLUGIN_FILE)
+          DESCRIPTION=$(grep -oP 'Description:\s*\K.+' $PLUGIN_FILE)
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "NAME=$NAME" >> $GITHUB_ENV
+          echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
+
+      - name: Fail if tag already exists
+        run: |
+          if git ls-remote --tags origin | grep -q "refs/tags/v${{ env.VERSION }}"; then
+            echo "🚫 Tag v${{ env.VERSION }} already exists. Update the version in azwp-mailer.php before releasing."
+            exit 1
+          fi
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
+
+      - name: Zip plugin
+        run: |
+          mkdir -p build
+          cd azwp-mailer
+          zip -r ../build/azwp-mailer-${{ env.VERSION }}.zip .
+          cd ..
+
+      - name: Generate JSON metadata
+        run: |
+          JSON_FILE="build/azwp-mailer.json"
+          DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${{ env.VERSION }}/azwp-mailer-${{ env.VERSION }}.zip"
+
+          echo "{
+  \"name\": \"${{ env.NAME }}\",
+  \"version\": \"${{ env.VERSION }}\",
+  \"download_url\": \"$DOWNLOAD_URL\",
+  \"sections\": {
+    \"description\": \"${{ env.DESCRIPTION }}\"
+  }
+}" > $JSON_FILE
+
+      - name: Upload release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          files: |
+            build/azwp-mailer-${{ env.VERSION }}.zip
+            build/azwp-mailer.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
