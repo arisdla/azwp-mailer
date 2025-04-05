@@ -47,14 +47,16 @@ jobs:
           JSON_FILE="build/azwp-mailer.json"
           DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${{ env.VERSION }}/azwp-mailer-${{ env.VERSION }}.zip"
 
-          echo "{
-  \"name\": \"${{ env.NAME }}\",
-  \"version\": \"${{ env.VERSION }}\",
-  \"download_url\": \"$DOWNLOAD_URL\",
-  \"sections\": {
-    \"description\": \"${{ env.DESCRIPTION }}\"
+          cat > $JSON_FILE <<EOF
+{
+  "name": "${{ env.NAME }}",
+  "version": "${{ env.VERSION }}",
+  "download_url": "$DOWNLOAD_URL",
+  "sections": {
+    "description": "${{ env.DESCRIPTION }}"
   }
-}" > $JSON_FILE
+}
+EOF
 
       - name: Upload release
         uses: softprops/action-gh-release@v1
