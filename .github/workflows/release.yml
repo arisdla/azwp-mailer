@@ -28,6 +28,13 @@ jobs:
           echo "NAME=$NAME" >> $GITHUB_ENV
           echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
 
+      # - name: Fail if tag already exists
+      #   run: |
+      #     if git ls-remote --tags origin | grep -q "refs/tags/v${{ env.VERSION }}"; then
+      #       echo "🚫 Tag v${{ env.VERSION }} already exists. Update the version in azwp-mailer.php before releasing."
+      #       exit 1
+      #     fi
+
       - name: Create Git tag
         run: |
           git config user.name "github-actions"
@@ -48,15 +55,15 @@ jobs:
           DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${{ env.VERSION }}/azwp-mailer-${{ env.VERSION }}.zip"
 
           cat > $JSON_FILE <<EOF
-{
-  "name": "${{ env.NAME }}",
-  "version": "${{ env.VERSION }}",
-  "download_url": "$DOWNLOAD_URL",
-  "sections": {
-    "description": "${{ env.DESCRIPTION }}"
-  }
-}
-EOF
+          {
+            "name": "${{ env.NAME }}",
+            "version": "${{ env.VERSION }}",
+            "download_url": "$DOWNLOAD_URL",
+            "sections": {
+              "description": "${{ env.DESCRIPTION }}"
+            }
+          }
+          EOF
 
       - name: Upload release
         uses: softprops/action-gh-release@v1
