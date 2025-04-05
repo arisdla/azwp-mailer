@@ -1,23 +1,22 @@
 name: Release Plugin
 
 on:
-  pull_request:
-    branches:
-      - release
-    types:
-      - closed
+  push:
+    tags:
+      - 'v*.*.*'
 
 permissions:
   contents: write
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Ensures tags are available
 
       - name: Set up variables
         id: vars
@@ -31,39 +30,33 @@ jobs:
           echo "NAME=$NAME" >> $GITHUB_ENV
           echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
 
-      # - name: Fail if tag already exists
-      #   run: |
-      #     if git ls-remote --tags origin | grep -q "refs/tags/v${{ env.VERSION }}"; then
-      #       echo "🚫 Tag v${{ env.VERSION }} already exists. Update the version in azwp-mailer.php before releasing."
-      #       exit 1
-      #     fi
-
-      - name: Create Git tag
+      - name: Validate tag matches plugin version
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
-          git push origin "v${{ env.VERSION }}"
+          TAG_VERSION="${GITHUB_REF##*/}"  # get tag name from ref
+          if [ "$TAG_VERSION" != "v${VERSION}" ]; then
+            echo "❌ Tag $TAG_VERSION doesn't match plugin version v${VERSION}"
+            exit 1
+          fi
 
       - name: Zip plugin
         run: |
           mkdir -p build
           cd azwp-mailer
-          zip -r ../build/azwp-mailer-${{ env.VERSION }}.zip .
+          zip -r ../build/azwp-mailer-${VERSION}.zip .
           cd ..
 
       - name: Generate JSON metadata
         run: |
           JSON_FILE="build/azwp-mailer.json"
-          DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${{ env.VERSION }}/azwp-mailer-${{ env.VERSION }}.zip"
+          DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${VERSION}/azwp-mailer-${VERSION}.zip"
 
           cat > $JSON_FILE <<EOF
           {
-            "name": "${{ env.NAME }}",
-            "version": "${{ env.VERSION }}",
+            "name": "${NAME}",
+            "version": "${VERSION}",
             "download_url": "$DOWNLOAD_URL",
             "sections": {
-              "description": "${{ env.DESCRIPTION }}"
+              "description": "${DESCRIPTION}"
             }
           }
           EOF
