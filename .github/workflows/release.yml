@@ -63,6 +63,11 @@ jobs:
         run: |
           cp build/azwp-mailer-${VERSION}.zip build/azwp-mailer.zip
 
+      - name: Force update 'latest' tag to current commit
+        run: |
+          git tag -f latest
+          git push -f origin latest
+
       - name: Upload to 'latest' release
         uses: softprops/action-gh-release@v1
         with:
