@@ -236,3 +236,11 @@ function azwp_mailer_configure_mailer($phpmailer) {
 }
 add_action('phpmailer_init', 'azwp_mailer_configure_mailer');
 
+require 'update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+	'https://github.com/arisdla/azwp-mailer/releases/download/latest/azwp-mailer.json',
+	__FILE__, //Full path to the main plugin file or functions.php.
+	'azwp-mailer' //Unique plugin slug (used as the option name and prefix for other internal identifiers
+);
