@@ -1,0 +1,15 @@
+# Ignore build artifacts
+/build/
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+._*
+.Spotlight-V100
+.Trashes
+
+# GitHub Actions temp files
+*.tmp
+*.cache
