@@ -41,9 +41,7 @@ jobs:
       - name: Zip plugin
         run: |
           mkdir -p build
-          cd azwp-mailer
-          zip -r ../build/azwp-mailer-${VERSION}.zip .
-          cd ..
+          zip -r build/azwp-mailer-${VERSION}.zip azwp-mailer
 
       - name: Generate JSON metadata
         run: |
