@@ -363,6 +363,16 @@ function azwp_mailer_configure_mailer($phpmailer) {
 }
 add_action('phpmailer_init', 'azwp_mailer_configure_mailer');
 
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'azwp_mailer_add_settings_link');
+
+function azwp_mailer_add_settings_link($links) {
+    $settings_url = admin_url('options-general.php?page=azwp_mailer');
+    $settings_link = '<a href="' . esc_url($settings_url) . '">' . __('Settings', 'azwp_mailer') . '</a>';
+    array_unshift($links, $settings_link); // add it to the beginning
+
+    return $links;
+}
+
 require 'update-checker/plugin-update-checker.php';
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
