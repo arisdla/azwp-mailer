@@ -13,3 +13,10 @@ Thumbs.db
 # GitHub Actions temp files
 *.tmp
 *.cache
+
+# Docker
+/_db-data/
+/_wordpress/
+
+# Dev & Test
+.env
