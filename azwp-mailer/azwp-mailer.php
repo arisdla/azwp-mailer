@@ -16,7 +16,7 @@ add_action('admin_menu', 'azwp_mailer_add_admin_menu');
 add_action('admin_init', 'azwp_mailer_settings_init');
 
 function azwp_mailer_add_admin_menu() {
-    add_options_page('Mailer Settings', 'Mailer Settings', 'manage_options', 'azwp_mailer', 'azwp_mailer_options_page');
+    add_options_page('AZ\'s WP SMTP Mailer', 'AZWP SMTP Mailer', 'manage_options', 'azwp_mailer', 'azwp_mailer_options_page');
 }
 
 function azwp_mailer_settings_init() {
@@ -31,7 +31,7 @@ function azwp_mailer_settings_init() {
 
     add_settings_field(
         'azwp_mailer_smtp_host',
-        __('SMTP Host', 'azwp_mailer'),
+        __('SMTP Server Address', 'azwp_mailer'),
         'azwp_mailer_smtp_host_render',
         'pluginPage',
         'azwp_mailer_pluginPage_section'
@@ -145,7 +145,7 @@ function azwp_mailer_validate_settings($input) {
     $errors = [];
 
     $required_fields = [
-        'azwp_mailer_smtp_host'    => 'SMTP Host',
+        'azwp_mailer_smtp_host'    => 'SMTP Server Address',
         'azwp_mailer_smtp_port'    => 'SMTP Port',
         'azwp_mailer_smtp_username'=> 'SMTP Username',
         'azwp_mailer_smtp_password'=> 'SMTP Password',
@@ -155,7 +155,7 @@ function azwp_mailer_validate_settings($input) {
 
     foreach ($required_fields as $key => $label) {
         if (empty($input[$key])) {
-            $errors[] = sprintf(__('%s is required.', 'azwp_mailer'), $label);
+            $errors[] = sprintf(__('%s is required to ensure proper email delivery.', 'azwp_mailer'), $label);
         }
     }
 
@@ -168,16 +168,16 @@ function azwp_mailer_validate_settings($input) {
 }
 
 function azwp_mailer_settings_section_callback() {
-    echo __('Configure your SMTP settings below.', 'azwp_mailer');
+    echo __('Configure your outgoing mail server settings below. These settings will apply to all emails sent from your WordPress site.', 'azwp_mailer');
 }
 
 function azwp_mailer_options_page() {
     ?>
     <div class="wrap">
-        <h2>AZ's WP SMTP Mailer</h2>
+        <h2>AZ's WordPress SMTP Mailer Configuration</h2>
         <h2 class="nav-tab-wrapper">
-            <a href="?page=azwp_mailer&tab=smtp_config" class="nav-tab <?php echo azwp_mailer_get_active_tab('smtp_config'); ?>">SMTP Config</a>
-            <a href="?page=azwp_mailer&tab=other_settings" class="nav-tab <?php echo azwp_mailer_get_active_tab('other_settings'); ?>">Other Settings</a>
+            <a href="?page=azwp_mailer&tab=smtp_config" class="nav-tab <?php echo azwp_mailer_get_active_tab('smtp_config'); ?>">Mail Server Settings</a>
+            <a href="?page=azwp_mailer&tab=other_settings" class="nav-tab <?php echo azwp_mailer_get_active_tab('other_settings'); ?>">Other Options</a>
         </h2>
         <form action='options.php' method='post'>
             <?php
@@ -200,12 +200,13 @@ function azwp_mailer_options_page() {
 
 function azwp_mailer_render_remove_plugin_section() {
     ?>
-    <h3><?php _e('Remove Plugin and Data', 'azwp_mailer'); ?></h3>
-    <p><?php _e('This will completely remove the plugin and its saved data from the database. This action is <strong>irreversible</strong>.', 'azwp_mailer'); ?></p>
+    <h3><?php _e('Plugin Removal Options', 'azwp_mailer'); ?></h3>
+    <p><?php _e('This action will permanently delete all SMTP settings and deactivate the plugin.', 'azwp_mailer'); ?></p>
+    <p><?php _e('Your email configuration will revert to WordPress defaults.', 'azwp_mailer'); ?></p>
 
     <!-- Button that opens the modal -->
     <button type="button" class="button azwp-button-danger-outline" id="azwp-remove-trigger">
-        <?php _e('Remove Plugin and Data', 'azwp_mailer'); ?>
+        <?php _e('Delete Settings & Deactivate', 'azwp_mailer'); ?>
     </button>
 
     <!-- Modal -->
@@ -215,9 +216,9 @@ function azwp_mailer_render_remove_plugin_section() {
                 <?php wp_nonce_field('azwp_mailer_remove_plugin', 'azwp_mailer_remove_plugin_nonce'); ?>
                 <input type="hidden" name="azwp_mailer_remove_plugin_action" value="remove_plugin">
 
-                <h2><?php _e('Confirm Removal', 'azwp_mailer'); ?></h2>
-                <p><?php _e('Are you sure you want to delete all the settings? This cannot be undone.', 'azwp_mailer'); ?></p>
-                <p><?php _e('After the data is deleted, the plugin will be deactivated. You can remove the plugin from WordPress Plugins Settings.', 'azwp_mailer'); ?></p>
+                <h2><?php _e('Confirm', 'azwp_mailer'); ?></h2>
+                <p><?php _e('Are you sure you want to remove all SMTP settings? This action cannot be undone and may affect email delivery on your site.', 'azwp_mailer'); ?></p>
+                <p><?php _e('After configuration data is deleted, the plugin will be automatically deactivated. You can then remove it from the Plugins page.', 'azwp_mailer'); ?></p>
 
                 <div class="azwp-modal-buttons">
                     <!-- Cancel: primary WP blue -->
@@ -227,7 +228,7 @@ function azwp_mailer_render_remove_plugin_section() {
 
                     <!-- Confirm: custom hollow red -->
                     <button type="submit" class="button azwp-button-danger-outline">
-                        <?php _e('Yes, Delete Settings', 'azwp_mailer'); ?>
+                        <?php _e('Delete Settings & Deactivate', 'azwp_mailer'); ?>
                     </button>
                 </div>
             </form>
