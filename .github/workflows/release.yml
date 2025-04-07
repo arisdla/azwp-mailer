@@ -24,11 +24,18 @@ jobs:
           PLUGIN_FILE="azwp-mailer/azwp-mailer.php"
           VERSION=$(grep -oP 'Version:\s*\K[\d.]+' $PLUGIN_FILE)
           NAME=$(grep -oP 'Plugin Name:\s*\K.+' $PLUGIN_FILE)
-          DESCRIPTION=$(grep -oP 'Description:\s*\K.+' $PLUGIN_FILE)
+          SHORT_DESC=$(grep -oP 'Description:\s*\K.+' $PLUGIN_FILE)
+          TAG_VERSION="${GITHUB_REF##*/}"
+          TAG_MESSAGE=$(git for-each-ref --format='%(contents)' refs/tags/${TAG_VERSION})
+
+          # Combine the tag message + short description
+          DESCRIPTION="${TAG_MESSAGE}\n\n${SHORT_DESC}"
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "NAME=$NAME" >> $GITHUB_ENV
-          echo "DESCRIPTION=$DESCRIPTION" >> $GITHUB_ENV
+          echo "DESCRIPTION<<EOF" >> $GITHUB_ENV
+          echo "$DESCRIPTION" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Validate tag matches plugin version
         run: |
@@ -68,6 +75,16 @@ jobs:
           git tag -f latest
           git push -f origin latest
 
+      - name: Upload versioned release zip
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          files: |
+            build/azwp-mailer-${{ env.VERSION }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload to 'latest' release
         uses: softprops/action-gh-release@v1
         with:
@@ -79,15 +96,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload versioned release
+      - name: Upload versioned release json
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ env.VERSION }}
           name: Release v${{ env.VERSION }}
           files: |
-            build/azwp-mailer-${{ env.VERSION }}.zip
             build/azwp-mailer.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      
