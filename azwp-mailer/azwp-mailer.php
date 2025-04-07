@@ -188,6 +188,7 @@ function azwp_mailer_options_page() {
                 do_settings_sections('pluginPage');
             } else {
                 echo '<p>' . __('Other settings can be configured here.', 'azwp_mailer') . '</p>';
+                azwp_mailer_render_remove_plugin_section();
             }
 
             submit_button();
@@ -196,6 +197,132 @@ function azwp_mailer_options_page() {
     </div>
     <?php
 }
+
+function azwp_mailer_render_remove_plugin_section() {
+    ?>
+    <h3><?php _e('Remove Plugin and Data', 'azwp_mailer'); ?></h3>
+    <p><?php _e('This will completely remove the plugin and its saved data from the database. This action is <strong>irreversible</strong>.', 'azwp_mailer'); ?></p>
+
+    <!-- Button that opens the modal -->
+    <button type="button" class="button azwp-button-danger-outline" id="azwp-remove-trigger">
+        <?php _e('Remove Plugin and Data', 'azwp_mailer'); ?>
+    </button>
+
+    <!-- Modal -->
+    <div id="azwp-remove-modal" class="azwp-modal-overlay">
+        <div class="azwp-modal-content">
+            <form method="post">
+                <?php wp_nonce_field('azwp_mailer_remove_plugin', 'azwp_mailer_remove_plugin_nonce'); ?>
+                <input type="hidden" name="azwp_mailer_remove_plugin_action" value="remove_plugin">
+
+                <h2><?php _e('Confirm Removal', 'azwp_mailer'); ?></h2>
+                <p><?php _e('Are you sure you want to delete all the settings? This cannot be undone.', 'azwp_mailer'); ?></p>
+                <p><?php _e('After the data is deleted, the plugin will be deactivated. You can remove the plugin from WordPress Plugins Settings.', 'azwp_mailer'); ?></p>
+
+                <div class="azwp-modal-buttons">
+                    <!-- Cancel: primary WP blue -->
+                    <button type="button" class="button button-primary" id="azwp-cancel-remove">
+                        <?php _e('Cancel', 'azwp_mailer'); ?>
+                    </button>
+
+                    <!-- Confirm: custom hollow red -->
+                    <button type="submit" class="button azwp-button-danger-outline">
+                        <?php _e('Yes, Delete Settings', 'azwp_mailer'); ?>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .azwp-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .azwp-modal-overlay.show {
+            display: flex;
+        }
+
+        .azwp-modal-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .azwp-modal-content h2 {
+            margin-top: 0;
+        }
+
+        .azwp-modal-buttons {
+            margin-top: 25px;
+            text-align: right;
+        }
+
+        .azwp-modal-buttons .button {
+            margin-left: 10px;
+        }
+
+        .azwp-button-danger-outline {
+            background: transparent;
+            color: #b32d2e !important;
+            border: 1px solid #b32d2e !important;
+            box-shadow: none;
+        }
+
+        .azwp-button-danger-outline:hover {
+            background: #fbeaea;
+            color: #aa0000;
+            border-color: #aa0000;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('azwp-remove-modal');
+            const openBtn = document.getElementById('azwp-remove-trigger');
+            const cancelBtn = document.getElementById('azwp-cancel-remove');
+
+            openBtn.addEventListener('click', function () {
+                modal.classList.add('show');
+            });
+
+            cancelBtn.addEventListener('click', function () {
+                modal.classList.remove('show');
+            });
+        });
+    </script>
+    <?php
+}
+
+// Handle plugin removal
+function azwp_mailer_handle_remove_plugin() {
+    if (
+        isset($_POST['azwp_mailer_remove_plugin_action']) &&
+        $_POST['azwp_mailer_remove_plugin_action'] === 'remove_plugin' &&
+        check_admin_referer('azwp_mailer_remove_plugin', 'azwp_mailer_remove_plugin_nonce')
+    ) {
+        // Delete plugin options
+        delete_option('azwp_mailer_settings');
+
+        // Deactivate the plugin
+        deactivate_plugins(plugin_basename(__FILE__));
+
+        // Redirect to plugins page with a success message
+        wp_redirect(admin_url('plugins.php?deactivate=true&removed=true'));
+        exit;
+    }
+}
+add_action('admin_init', 'azwp_mailer_handle_remove_plugin');
 
 function azwp_mailer_get_active_tab($tab_name) {
     $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'smtp_config';
