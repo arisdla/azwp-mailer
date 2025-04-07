@@ -59,3 +59,49 @@ Clone the repo and work in the `azwp-mailer/` directory.
 git clone https://github.com/arisdla/azwp-mailer.git
 cd azwp-mailer
 ```
+
+## 🐳 Use Docker for Local Development
+
+**🛠 Requirements**
+
+- Docker
+- Docker Compose
+
+### 📦 Setup Instructions
+
+1. **Clone the repository** (if you haven’t already):
+
+```bash
+git clone https://github.com/arisdla/azwp-mailer.git
+```
+
+2. **Copy the .env template and customize**:
+
+```bash
+cp .env.example .env
+```
+
+```env example file
+WORDPRESS_DB_NAME=change-me
+WORDPRESS_DB_USER=change-me
+WORDPRESS_DB_PASSWORD=change-me
+MYSQL_ROOT_PASSWORD=change-me
+AUTO_RESTART=no
+```
+
+3. **Start the containers**:
+
+```bash
+docker-compose up
+```
+
+This will start:
+
+- WordPress at [http://localhost:8000](http://localhost:8000)
+- phpMyAdmin at [http://localhost:8080](http://localhost:8080)
+
+Volumes:
+
+- ./`_wordpress`:/var/www/html
+- ./`_db-data`:/var/lib/mysql
+- ./`azwp-mailer`:/var/www/html/wp-content/plugins/azwp-mailer
