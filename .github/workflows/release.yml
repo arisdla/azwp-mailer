@@ -58,8 +58,8 @@ jobs:
 
       - name: Prepare JSON-safe description and changelog
         run: |
-          HTML_DESCRIPTION=$(echo "${SHORT_DESC}" | python3 -c 'import sys, html; print("<p>" + "</p><p>".join(sys.stdin.read().strip().split("\n\n")) + "</p>")')
-          HTML_CHANGELOG=$(echo "${CHANGELOG}" | python3 -c 'import sys, html; print("<p>" + "</p><p>".join(sys.stdin.read().strip().split("\n\n")) + "</p>")')
+          HTML_DESCRIPTION=$(echo "${SHORT_DESC}" | python3 -c 'import sys, html; print("".join(f"<p>{html.escape(line)}</p>" for line in sys.stdin.read().strip().splitlines() if line))')
+          HTML_CHANGELOG=$(echo "${CHANGELOG}" | python3 -c 'import sys, html; print("".join(f"<p>{html.escape(line)}</p>" for line in sys.stdin.read().strip().splitlines() if line))')
 
           ESCAPED_DESCRIPTION=$(echo "$HTML_DESCRIPTION" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
           ESCAPED_CHANGELOG=$(echo "$HTML_CHANGELOG" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
