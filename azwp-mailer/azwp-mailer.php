@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AZ's WP SMTP Mailer
  * Description: A plugin to configure SMTP settings for sending emails in WordPress.
- * Version: 0.2.0
+ * Version: 0.2.1
  * Author: Arthur Z.
  */
 
