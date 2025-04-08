@@ -33,7 +33,6 @@ jobs:
             exit 1
           fi
 
-          # 💥 Correct, reliable annotated tag message extraction
           TAG_MESSAGE=$(git cat-file tag "$TAG_VERSION" | sed -n '/^$/,$p' | tail -n +2)
           TAG_MESSAGE=$(echo "$TAG_MESSAGE" | sed 's/^[-–*]\s*/- /')
 
@@ -44,6 +43,8 @@ jobs:
           echo "DESCRIPTION<<EOF" >> $GITHUB_ENV
           echo "$DESCRIPTION" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+        env:
+          GITHUB_REF: ${{ github.ref }}
 
       - name: 🔍 Debug extracted values
         run: |
