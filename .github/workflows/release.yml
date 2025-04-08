@@ -25,24 +25,17 @@ jobs:
           VERSION=$(grep -oP 'Version:\s*\K[\d.]+' "$PLUGIN_FILE")
           NAME=$(grep -oP 'Plugin Name:\s*\K.+' "$PLUGIN_FILE")
           SHORT_DESC=$(grep -oP 'Description:\s*\K.+' "$PLUGIN_FILE")
-          TAG_VERSION="${GITHUB_REF##*/}"            # v0.1.4
-          VERSION_FROM_TAG="${TAG_VERSION#v}"        # 0.1.4
+          TAG_VERSION="${GITHUB_REF##*/}"
+          VERSION_FROM_TAG="${TAG_VERSION#v}"
 
-          # Fail if version and tag mismatch
           if [ "$VERSION_FROM_TAG" != "$VERSION" ]; then
             echo "❌ Tag $TAG_VERSION doesn't match plugin version $VERSION"
             exit 1
           fi
 
-          RAW_TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_VERSION")
-          
-          TAG_OBJECT=$(git rev-parse "${TAG_VERSION}^{tag}" 2>/dev/null || true)
-
-          if [ -n "$TAG_OBJECT" ]; then
-            TAG_MESSAGE=$(git cat-file tag "$TAG_OBJECT" | sed -n '/^$/,$p' | tail -n +2)
-          else
-            TAG_MESSAGE=""
-          fi
+          # 💥 Correct, reliable annotated tag message extraction
+          TAG_MESSAGE=$(git cat-file tag "$TAG_VERSION" | sed -n '/^$/,$p' | tail -n +2)
+          TAG_MESSAGE=$(echo "$TAG_MESSAGE" | sed 's/^[-–*]\s*/- /')
 
           DESCRIPTION="${TAG_MESSAGE}\n\n---\n\n${SHORT_DESC}"
 
@@ -51,6 +44,15 @@ jobs:
           echo "DESCRIPTION<<EOF" >> $GITHUB_ENV
           echo "$DESCRIPTION" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
+      - name: 🔍 Debug extracted values
+        run: |
+          echo "VERSION: $VERSION"
+          echo "TAG_VERSION: $TAG_VERSION"
+          echo "TAG_MESSAGE:"
+          echo "$TAG_MESSAGE"
+          echo "FINAL DESCRIPTION:"
+          echo "$DESCRIPTION"
 
       - name: Zip plugin
         run: |
