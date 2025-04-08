@@ -26,10 +26,12 @@ jobs:
           NAME=$(grep -oP 'Plugin Name:\s*\K.+' $PLUGIN_FILE)
           SHORT_DESC=$(grep -oP 'Description:\s*\K.+' $PLUGIN_FILE)
           TAG_VERSION="${GITHUB_REF##*/}"
-          TAG_MESSAGE=$(git for-each-ref --format='%(contents)' refs/tags/${TAG_VERSION})
+          RAW_TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_VERSION")
 
-          # Combine the tag message + short description
-          DESCRIPTION="${TAG_MESSAGE}\n\n${SHORT_DESC}"
+          # Format tag message to Markdown bullet points
+          TAG_MESSAGE=$(echo "$RAW_TAG_MESSAGE" | sed 's/^[-–*]\s*/- /')
+
+          DESCRIPTION="### Changelog\n\n${TAG_MESSAGE}\n\n---\n\n${SHORT_DESC}"
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "NAME=$NAME" >> $GITHUB_ENV
