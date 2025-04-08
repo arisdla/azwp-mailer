@@ -46,8 +46,15 @@ jobs:
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "NAME=$NAME" >> $GITHUB_ENV
-          echo "SHORT_DESC=$SHORT_DESC" >> $GITHUB_ENV
-          echo "CHANGELOG=$TAG_MESSAGE" >> $GITHUB_ENV
+          echo "AUTHOR=$AUTHOR" >> $GITHUB_ENV
+
+          echo "SHORT_DESC<<EOF" >> $GITHUB_ENV
+          echo "$SHORT_DESC" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$TAG_MESSAGE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Prepare JSON-safe description and changelog
         run: |
