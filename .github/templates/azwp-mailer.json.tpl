@@ -4,8 +4,8 @@
 	"download_url": "${DOWNLOAD_URL}",
 
 	"homepage": "https://github.com/arisdla/azwp-mailer",
-	"requires": "4.5",
-	"tested": "4.8",
+	"requires": "5.3",
+	"tested": "6.7.2",
 	"last_updated": "${LAST_UPDATED}",
 
 	"author": "${AUTHOR}",
