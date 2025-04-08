@@ -52,7 +52,7 @@ jobs:
 
       - name: Generate JSON metadata
         run: |
-          JSON_FILE="build/azwp-mailer.json"
+          JSON_FILE="build/azwp-mailer-${VERSION}.json"
           DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${VERSION}/azwp-mailer-${VERSION}.zip"
 
           cat > $JSON_FILE <<EOF
@@ -66,9 +66,10 @@ jobs:
           }
           EOF
 
-      - name: Copy and rename ZIP for latest release
+      - name: Copy and rename files for latest release
         run: |
           cp build/azwp-mailer-${VERSION}.zip build/azwp-mailer.zip
+          cp build/azwp-mailer-${VERSION}.json build/azwp-mailer.json
 
       - name: Force update 'latest' tag to current commit
         run: |
@@ -102,6 +103,6 @@ jobs:
           tag_name: v${{ env.VERSION }}
           name: Release v${{ env.VERSION }}
           files: |
-            build/azwp-mailer.json
+            build/azwp-mailer-${{ env.VERSION }}.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
