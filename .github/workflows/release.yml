@@ -35,7 +35,7 @@ jobs:
           fi
 
           RAW_TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_VERSION")
-          TAG_MESSAGE=$(echo "$RAW_TAG_MESSAGE" | sed 's/^[-–*]\s*/- /')
+          TAG_MESSAGE=$(git for-each-ref --format='%(contents)' "refs/tags/${TAG_VERSION}")
 
           DESCRIPTION="${TAG_MESSAGE}\n\n---\n\n${SHORT_DESC}"
 
