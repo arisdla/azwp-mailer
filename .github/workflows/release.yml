@@ -72,12 +72,12 @@ jobs:
           mkdir -p build
           zip -r build/azwp-mailer-${VERSION}.zip azwp-mailer
 
-          - name: Generate final JSON from template
-          run: |
-            export LAST_UPDATED=$(date -u +"%Y-%m-%d %H:%M:%S")
-            export DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${VERSION}/azwp-mailer-${VERSION}.zip"
-  
-            envsubst < .github/templates/azwp-mailer.json.tpl > build/azwp-mailer-${VERSION}.json
+      - name: Generate final JSON from template
+        run: |
+          export LAST_UPDATED=$(date -u +"%Y-%m-%d %H:%M:%S")
+          export DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${VERSION}/azwp-mailer-${VERSION}.zip"
+
+          envsubst < .github/templates/azwp-mailer.json.tpl > build/azwp-mailer-${VERSION}.json
 
       - name: Copy and rename files for latest release
         run: |
