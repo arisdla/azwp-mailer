@@ -24,12 +24,13 @@ jobs:
       - name: Set up variables
         id: vars
         env:
-          TAG_VERSION: ${{ github.ref_name }} 
+          TAG_VERSION: ${{ github.ref_name }}
         run: |
           PLUGIN_FILE="azwp-mailer/azwp-mailer.php"
           VERSION=$(grep -oP 'Version:\s*\K[\d.]+' "$PLUGIN_FILE")
           NAME=$(grep -oP 'Plugin Name:\s*\K.+' "$PLUGIN_FILE")
           SHORT_DESC=$(grep -oP 'Description:\s*\K.+' "$PLUGIN_FILE")
+          AUTHOR=$(grep -oP 'Author:\s*\K.+' "$PLUGIN_FILE")
           VERSION_FROM_TAG="${TAG_VERSION#v}"
 
           if [ "$VERSION_FROM_TAG" != "$VERSION" ]; then
@@ -39,50 +40,37 @@ jobs:
 
           echo "🔍 Using tag: $TAG_VERSION"
 
+          # Extract multiline tag message
           TAG_MESSAGE=$(git cat-file tag "$TAG_VERSION" | sed -n '/^$/,$p' | tail -n +2)
           TAG_MESSAGE=$(echo "$TAG_MESSAGE" | sed 's/^[-–*]\s*/- /')
 
-          DESCRIPTION="${TAG_MESSAGE}\n\n---\n\n${SHORT_DESC}"
-
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "NAME=$NAME" >> $GITHUB_ENV
-          echo "DESCRIPTION<<EOF" >> $GITHUB_ENV
-          echo "$DESCRIPTION" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          echo "SHORT_DESC=$SHORT_DESC" >> $GITHUB_ENV
+          echo "CHANGELOG=$TAG_MESSAGE" >> $GITHUB_ENV
 
-      - name: 🔍 Debug extracted values
+      - name: Prepare JSON-safe description and changelog
         run: |
-          echo "VERSION: $VERSION"
-          echo "TAG_VERSION: $TAG_VERSION"
-          echo "TAG_MESSAGE:"
-          echo "$TAG_MESSAGE"
-          echo "FINAL DESCRIPTION:"
-          echo "$DESCRIPTION"
+          HTML_DESCRIPTION=$(echo "${SHORT_DESC}" | python3 -c 'import sys, html; print("<p>" + "</p><p>".join(sys.stdin.read().strip().split("\n\n")) + "</p>")')
+          HTML_CHANGELOG=$(echo "${CHANGELOG}" | python3 -c 'import sys, html; print("<p>" + "</p><p>".join(sys.stdin.read().strip().split("\n\n")) + "</p>")')
+
+          ESCAPED_DESCRIPTION=$(echo "$HTML_DESCRIPTION" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
+          ESCAPED_CHANGELOG=$(echo "$HTML_CHANGELOG" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
+
+          echo "DESCRIPTION=$ESCAPED_DESCRIPTION" >> $GITHUB_ENV
+          echo "CHANGELOG=$ESCAPED_CHANGELOG" >> $GITHUB_ENV
 
       - name: Zip plugin
         run: |
           mkdir -p build
           zip -r build/azwp-mailer-${VERSION}.zip azwp-mailer
 
-      - name: Generate JSON metadata
-        run: |
-          JSON_FILE="build/azwp-mailer-${VERSION}.json"
-          DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${VERSION}/azwp-mailer-${VERSION}.zip"
-
-          # Convert newlines to HTML <p> tags, then escape it for JSON
-          HTML_DESCRIPTION=$(echo "${DESCRIPTION}" | python3 -c 'import sys, html; desc = sys.stdin.read().strip(); print("<p>" + "</p><p>".join(desc.split("\n\n")) + "</p>")')
-          ESCAPED_DESCRIPTION=$(echo "$HTML_DESCRIPTION" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
-
-          cat > "$JSON_FILE" <<EOF
-          {
-            "name": "${NAME}",
-            "version": "${VERSION}",
-            "download_url": "$DOWNLOAD_URL",
-            "sections": {
-              "description": "$ESCAPED_DESCRIPTION"
-            }
-          }
-          EOF
+          - name: Generate final JSON from template
+          run: |
+            export LAST_UPDATED=$(date -u +"%Y-%m-%d %H:%M:%S")
+            export DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${VERSION}/azwp-mailer-${VERSION}.zip"
+  
+            envsubst < .github/templates/azwp-mailer.json.tpl > build/azwp-mailer-${VERSION}.json
 
       - name: Copy and rename files for latest release
         run: |
