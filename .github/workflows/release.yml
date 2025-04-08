@@ -35,7 +35,14 @@ jobs:
           fi
 
           RAW_TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_VERSION")
-          TAG_MESSAGE=$(git for-each-ref --format='%(contents)' "refs/tags/${TAG_VERSION}")
+          
+          TAG_OBJECT=$(git rev-parse "${TAG_VERSION}^{tag}" 2>/dev/null || true)
+
+          if [ -n "$TAG_OBJECT" ]; then
+            TAG_MESSAGE=$(git cat-file tag "$TAG_OBJECT" | sed -n '/^$/,$p' | tail -n +2)
+          else
+            TAG_MESSAGE=""
+          fi
 
           DESCRIPTION="${TAG_MESSAGE}\n\n---\n\n${SHORT_DESC}"
 
