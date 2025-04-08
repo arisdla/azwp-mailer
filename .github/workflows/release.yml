@@ -37,7 +37,7 @@ jobs:
           RAW_TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_VERSION")
           TAG_MESSAGE=$(echo "$RAW_TAG_MESSAGE" | sed 's/^[-–*]\s*/- /')
 
-          DESCRIPTION="### Changelog\n\n${TAG_MESSAGE}\n\n---\n\n${SHORT_DESC}"
+          DESCRIPTION="${TAG_MESSAGE}\n\n---\n\n${SHORT_DESC}"
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "NAME=$NAME" >> $GITHUB_ENV
