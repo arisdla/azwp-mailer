@@ -69,8 +69,9 @@ jobs:
           JSON_FILE="build/azwp-mailer-${VERSION}.json"
           DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${VERSION}/azwp-mailer-${VERSION}.zip"
 
-          # Escape description for JSON (newlines and quotes)
-          ESCAPED_DESCRIPTION=$(echo "${DESCRIPTION}" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
+          # Convert newlines to HTML <p> tags, then escape it for JSON
+          HTML_DESCRIPTION=$(echo "${DESCRIPTION}" | python3 -c 'import sys, html; desc = sys.stdin.read().strip(); print("<p>" + "</p><p>".join(desc.split("\n\n")) + "</p>")')
+          ESCAPED_DESCRIPTION=$(echo "$HTML_DESCRIPTION" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
 
           cat > "$JSON_FILE" <<EOF
           {
