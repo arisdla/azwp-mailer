@@ -16,19 +16,25 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Ensures tags are available
+          fetch-depth: 0
 
       - name: Set up variables
         id: vars
         run: |
           PLUGIN_FILE="azwp-mailer/azwp-mailer.php"
-          VERSION=$(grep -oP 'Version:\s*\K[\d.]+' $PLUGIN_FILE)
-          NAME=$(grep -oP 'Plugin Name:\s*\K.+' $PLUGIN_FILE)
-          SHORT_DESC=$(grep -oP 'Description:\s*\K.+' $PLUGIN_FILE)
-          TAG_VERSION="${GITHUB_REF##*/}"
-          RAW_TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_VERSION")
+          VERSION=$(grep -oP 'Version:\s*\K[\d.]+' "$PLUGIN_FILE")
+          NAME=$(grep -oP 'Plugin Name:\s*\K.+' "$PLUGIN_FILE")
+          SHORT_DESC=$(grep -oP 'Description:\s*\K.+' "$PLUGIN_FILE")
+          TAG_VERSION="${GITHUB_REF##*/}"            # v0.1.4
+          VERSION_FROM_TAG="${TAG_VERSION#v}"        # 0.1.4
 
-          # Format tag message to Markdown bullet points
+          # Fail if version and tag mismatch
+          if [ "$VERSION_FROM_TAG" != "$VERSION" ]; then
+            echo "❌ Tag $TAG_VERSION doesn't match plugin version $VERSION"
+            exit 1
+          fi
+
+          RAW_TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_VERSION")
           TAG_MESSAGE=$(echo "$RAW_TAG_MESSAGE" | sed 's/^[-–*]\s*/- /')
 
           DESCRIPTION="### Changelog\n\n${TAG_MESSAGE}\n\n---\n\n${SHORT_DESC}"
@@ -39,14 +45,6 @@ jobs:
           echo "$DESCRIPTION" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Validate tag matches plugin version
-        run: |
-          TAG_VERSION="${GITHUB_REF##*/}"  # get tag name from ref
-          if [ "$TAG_VERSION" != "v${VERSION}" ]; then
-            echo "❌ Tag $TAG_VERSION doesn't match plugin version v${VERSION}"
-            exit 1
-          fi
-
       - name: Zip plugin
         run: |
           mkdir -p build
@@ -56,8 +54,7 @@ jobs:
         run: |
           JSON_FILE="build/azwp-mailer-${VERSION}.json"
           DOWNLOAD_URL="https://github.com/arisdla/azwp-mailer/releases/download/v${VERSION}/azwp-mailer-${VERSION}.zip"
-
-          cat > $JSON_FILE <<EOF
+          cat > "$JSON_FILE" <<EOF
           {
             "name": "${NAME}",
             "version": "${VERSION}",
